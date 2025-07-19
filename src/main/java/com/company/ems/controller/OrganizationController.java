@@ -8,9 +8,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -42,17 +47,14 @@ public class OrganizationController {
         return ApiResponse.success("获取组织详情成功", organization);
     }
 
-    /**
-     * 根据父级ID获取子组织
-     */
+    @ApiOperation(value = "获取子组织", notes = "根据父级ID获取子组织列表")
     @GetMapping("/{parentId}/children")
-    public ResponseEntity<List<Organization>> getChildrenByParentId(@PathVariable Long parentId) {
-        try {
-            List<Organization> children = organizationService.getChildrenByParentId(parentId);
-            return ResponseEntity.ok(children);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    public ApiResponse<List<Organization>> getChildrenByParentId(@ApiParam(value = "父级组织ID", required = true) @PathVariable Long parentId) {
+        if (parentId == null || parentId <= 0) {
+            throw new BusinessException("INVALID_PARAMETER", "父级组织ID不能为空且必须大于0");
         }
+        List<Organization> children = organizationService.getChildrenByParentId(parentId);
+        return ApiResponse.success("获取子组织成功", children);
     }
 
     @ApiOperation(value = "创建组织", notes = "新增组织信息")
