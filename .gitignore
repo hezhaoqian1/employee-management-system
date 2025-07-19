@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# 不需要上传的文件
+面试视频录制教程.md
+API_DEMO.md
