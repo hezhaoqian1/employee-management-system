@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.ems.mapper.SmsRecordMapper">
+    
+    <resultMap id="BaseResultMap" type="com.company.ems.entity.SmsRecord">
+        <id column="id" property="id"/>
+        <result column="batch_id" property="batchId"/>
+        <result column="employee_id" property="employeeId"/>
+        <result column="phone" property="phone"/>
+        <result column="content" property="content"/>
+        <result column="status" property="status"/>
+        <result column="send_time" property="sendTime"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="created_time" property="createdTime"/>
+    </resultMap>
+
+    <resultMap id="SmsRecordWithEmployeeMap" type="com.company.ems.entity.SmsRecord" extends="BaseResultMap">
+        <association property="employee" javaType="com.company.ems.entity.Employee">
+            <id column="emp_id" property="id"/>
+            <result column="emp_name" property="name"/>
+            <result column="emp_no" property="employeeNo"/>
+        </association>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, batch_id, employee_id, phone, content, status, send_time, error_message, created_time
+    </sql>
+
+    <select id="selectByBatchId" resultMap="SmsRecordWithEmployeeMap">
+        SELECT s.id, s.batch_id, s.employee_id, s.phone, s.content, s.status, 
+               s.send_time, s.error_message, s.created_time,
+               e.id as emp_id, e.name as emp_name, e.employee_no as emp_no
+        FROM sms_record s
+        LEFT JOIN employee e ON s.employee_id = e.id
+        WHERE s.batch_id = #{batchId}
+        ORDER BY s.created_time DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sms_record
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectPendingRecords" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sms_record
+        WHERE status = 0
+        ORDER BY created_time ASC
+        LIMIT 100
+    </select>
+
+    <insert id="insert" parameterType="com.company.ems.entity.SmsRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sms_record (
+            batch_id, employee_id, phone, content, status
+        ) VALUES (
+            #{batchId}, #{employeeId}, #{phone}, #{content}, #{status}
+        )
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO sms_record (
+            batch_id, employee_id, phone, content, status
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.batchId}, #{item.employeeId}, #{item.phone}, #{item.content}, #{item.status})
+        </foreach>
+    </insert>
+
+    <update id="updateById" parameterType="com.company.ems.entity.SmsRecord">
+        UPDATE sms_record
+        SET status = #{status},
+            send_time = #{sendTime},
+            error_message = #{errorMessage}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

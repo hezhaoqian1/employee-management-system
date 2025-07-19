@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.company.ems.mapper.OrganizationMapper">
+    
+    <resultMap id="BaseResultMap" type="com.company.ems.entity.Organization">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="level" property="level"/>
+        <result column="full_path" property="fullPath"/>
+        <result column="address" property="address"/>
+        <result column="phone" property="phone"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, code, parent_id, level, full_path, address, phone, description, status, sort_order, created_time, updated_time
+    </sql>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM organization
+        WHERE status = 1
+        ORDER BY level, sort_order, created_time
+    </select>
+
+    <select id="selectByParentId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM organization
+        WHERE parent_id = #{parentId} AND status = 1
+        ORDER BY sort_order, created_time
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM organization
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectRootOrganizations" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM organization
+        WHERE parent_id IS NULL AND status = 1
+        ORDER BY sort_order, created_time
+    </select>
+
+    <select id="selectChildren" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM organization
+        WHERE parent_id = #{id} AND status = 1
+        ORDER BY sort_order, created_time
+    </select>
+
+    <select id="countEmployeesByOrganizationId" resultType="int">
+        SELECT COUNT(*)
+        FROM employee
+        WHERE organization_id = #{organizationId} AND status = 1
+    </select>
+
+    <insert id="insert" parameterType="com.company.ems.entity.Organization" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO organization (
+            name, code, parent_id, level, full_path, address, phone, description, status, sort_order
+        ) VALUES (
+            #{name}, #{code}, #{parentId}, #{level}, #{fullPath}, #{address}, #{phone}, #{description}, #{status}, #{sortOrder}
+        )
+    </insert>
+
+    <update id="updateById" parameterType="com.company.ems.entity.Organization">
+        UPDATE organization
+        SET name = #{name},
+            code = #{code},
+            parent_id = #{parentId},
+            level = #{level},
+            full_path = #{fullPath},
+            address = #{address},
+            phone = #{phone},
+            description = #{description},
+            status = #{status},
+            sort_order = #{sortOrder}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        UPDATE organization SET status = 0 WHERE id = #{id}
+    </delete>
+
+</mapper>
